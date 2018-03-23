@@ -2,14 +2,14 @@
 #include "WiFi.h"
 #include "WiFiUdp.h"
 
-// WiFi credentials.
+// WiFi credentials
 const char* WIFI_SSID = "JuanNET";
 const char* WIFI_PASS = "strandbeast";
 
 unsigned int local_port = 2390;
 
-char packetBuffer[255];
-char ReplyBuffer[] = "ACK";
+char recv_buffer[255];
+int packet_size = 0;
 
 WiFiUDP Udp;
 
@@ -28,53 +28,54 @@ void setup() {
         // Check to see if connecting failed.
         // This is due to incorrect credentials
         if (WiFi.status() == WL_CONNECT_FAILED) {
-            Serial.println("Failed to connect to WIFI. Please verify credentials: ");
-            Serial.println();
-            Serial.print("SSID: ");
-            Serial.println(WIFI_SSID);
-            Serial.print("Password: ");
-            Serial.println(WIFI_PASS);
-            Serial.println();
+            Serial.println("Failed to connect to WIFI... Check credentials.");
         }
 
         delay(5000);
     }
 
-    Serial.println("");
     Serial.println("WiFi connected");
-    Serial.println("IP address: ");
+    Serial.println("Obtained IP address: ");
     Serial.println(WiFi.localIP());
 
-    Serial.println("Hello World, I'm connected to the internets!!");
+    Serial.println("LOOK MA', I AM ON ZE INTERNETZ!");
 
+    // Start UDP
     Udp.begin(local_port);
 }
 
 void loop() {
 
     // if there's data available, read a packet
-    int packetSize = Udp.parsePacket();
-    if (packetSize) {
-        Serial.print("Received packet of size ");
-        Serial.println(packetSize);
-        Serial.print("From ");
-        IPAddress remoteIp = Udp.remoteIP();
-        Serial.print(remoteIp);
-        Serial.print(", port ");
-        Serial.println(Udp.remotePort());
+    packet_size = Udp.parsePacket();
+    if (packet_size) {
+        
+        Serial.print("CMD: ");
+        Serial.print(Udp.remoteIP());
+        Serial.print(":");
+        Serial.print(Udp.remotePort());
+        Serial.print(", SIZE: ");
+        Serial.println(packet_size);
 
         // read the packet into packetBufffer
-        int len = Udp.read(packetBuffer, 255);
+        int len = Udp.read(recv_buffer, 255);
         if (len > 0) {
-            packetBuffer[len] = 0;
+            recv_buffer[len] = 0;
         }
-    
-        Serial.println("Contents:");
-        Serial.println(packetBuffer);
+        
+        if (!strcmp(recv_buffer, "F")) {
+            Serial.println("GO FORWARDS");
+        } else if (!strcmp(recv_buffer, "B")) {
+            Serial.println("GO BACKWARDS");
+        } else if (!strcmp(recv_buffer, "R")) {
+            Serial.println("GO RIGHT");
+        } else if (!strcmp(recv_buffer, "L")) {
+            Serial.println("GO LEFT");
+        }
 
-        // send a reply, to the IP address and port that sent us the packet we received
+        // ACK
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         Udp.write(0x01);
         Udp.endPacket();
-  }
+    }
 }
