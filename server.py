@@ -31,4 +31,4 @@ with Input(keynames='curses') as input_generator:
             # Receive
             msg, __ = sock.recvfrom(1024)
             if (msg == b'\x01'):
-                print('ACK from ESP32')
+                print('ACK')
