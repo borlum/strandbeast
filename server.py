@@ -27,8 +27,3 @@ with Input(keynames='curses') as input_generator:
                 bytes(controls[e], "utf-8"), 
                 (UDP_IP, UDP_PORT)
             )
-            
-            # Receive
-            msg, __ = sock.recvfrom(1024)
-            if (msg == b'\x01'):
-                print('ACK')
